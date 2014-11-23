@@ -16,7 +16,7 @@ class QuoteDB:
     def get_random(self, nick = None):
         c = self.conn.cursor()
         if nick:
-            c.execute("SELECT user, quote FROM log WHERE user = ? AND log.id = quotes.log_id ORDER BY RANDOM() LIMIT 1", (nick, ));
+            c.execute("SELECT log.user, log.quote FROM log, quotes WHERE log.user = ? AND log.id = quotes.log_id ORDER BY RANDOM() LIMIT 1", (nick, ));
         else:
             c.execute("SELECT log.user, log.quote FROM log, quotes WHERE log.id = quotes.log_id ORDER BY RANDOM() LIMIT 1");
         return c.fetchone()
