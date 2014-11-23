@@ -1,5 +1,4 @@
-#! /usr/bin/env python
-# Joel Rosdahl <joel@rosdahl.net>
+#!/usr/bin/python3
 
 import irc.bot
 import random
