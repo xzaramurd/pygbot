@@ -65,8 +65,15 @@ class TestBot(irc.bot.SingleServerIRCBot):
                         d = 2
                     n = max(min(n, 10), 1)
                     d = max(min(d, 10000), 2)
-                    rolls += str(n) + "d" + str(d) + " = "
-                    rolls += str([random.randint(1, d) for i in range(n) ]) + "; "
+                    rolls += str(n) + "d" + str(d) + " : "
+                    results = [random.randint(1, d) for i in range(n)];
+                    rolls += str(results) + " = " + str(sum(results))  + "; "
+                    if len(rolls) >= 256:
+                        if private:
+                            c.privmsg(nick, rolls)
+                        else:
+                            c.privmsg(self.channel, rolls)
+                        rolls = ""
             else:
                 rolls += str(1) + "d" + str(6) + " = "
                 rolls += str([random.randint(1, 6)]) + "; "
