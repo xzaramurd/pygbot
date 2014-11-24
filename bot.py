@@ -51,14 +51,20 @@ class TestBot(irc.bot.SingleServerIRCBot):
             
             if len(cmd) >= 2:
                 for roll in cmd[1:]:
+                    v = roll.split('d')
+                    if len(v) == 1:
+                        n = 1
+                    else:
+                        try:
+                            n = int(v[0])
+                        except ValueError:
+                            n = 1
                     try:
-                        v = roll.split('d')
-                        n, d = int(v[0]), int(v[1])
-                        n = min(n, 10)
-                        d = min(d, 10000)
-                    except ValueError as e:
-                        print(e)
-                        continue
+                        d = int(v[-1])
+                    except ValueError:
+                        d = 2
+                    n = max(min(n, 10), 1)
+                    d = max(min(d, 10000), 2)
                     rolls += str(n) + "d" + str(d) + " = "
                     rolls += str([random.randint(1, d) for i in range(n) ]) + "; "
             else:
@@ -94,8 +100,9 @@ class TestBot(irc.bot.SingleServerIRCBot):
             self.print_help(c, nick)
 
     def print_help(self, c, nick):
+        c.notice(nick, "Py Grabber Bot v0.2: github.com/xzaramurd/pygbot")
         c.notice(nick, "!help prints help")
-        c.notice(nick, "!roll [xdy]... rools x dice with y faces, default 1d6")
+        c.notice(nick, "!roll [[xd]y]... rools x dice with y faces, default 1d6")
         c.notice(nick, "!grab [user [index]] saves a line to quotes")
         c.notice(nick, "!quote [user] produces a random quote")
     
