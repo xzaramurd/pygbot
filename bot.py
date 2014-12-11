@@ -39,7 +39,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
             print(nick)
 
             # correct any mishaps
-            if re.compile(ur'libr[ăa]ri[eai]', re.UNICODE).search(a):
+            if re.compile(ur'libr[ăa]ri[eai]', re.UNICODE).search(a.lower()):
                 c = self.connection
                 c.privmsg(self.channel, nick + ": " + u'BI-BLI-O-TE-CA!')
 
