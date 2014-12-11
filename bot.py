@@ -12,6 +12,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
         irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
         self.channel = channel
         self.db = db
+        irc.client.ServerConnection.buffer_class.errors = 'replace'
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
