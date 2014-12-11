@@ -4,6 +4,7 @@
 import irc.bot
 import random
 import signal
+import re
 from quotedb import QuoteDB
 
 bot = None
@@ -36,6 +37,12 @@ class TestBot(irc.bot.SingleServerIRCBot):
         else:
             nick = e.source.nick
             print(nick)
+
+            # correct any mishaps
+            if re.compile(ur'libr[ăa]rie', re.UNICODE).search(a):
+                c = self.connection
+                c.privmsg(self.channel, nick + ": " + u'BI-BLI-O-TE-CA!')
+
             self.db.log(nick, a)
             return
 
