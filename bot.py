@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# vim: set fileencoding=utf-8
 
 import irc.bot
 import random
