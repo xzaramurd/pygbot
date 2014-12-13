@@ -1,8 +1,10 @@
 #!/usr/bin/python3
+# vim: set fileencoding=utf-8
 
 import irc.bot
 import random
 import signal
+import re
 from quotedb import QuoteDB
 
 bot = None
@@ -36,20 +38,26 @@ class TestBot(irc.bot.SingleServerIRCBot):
         else:
             nick = e.source.nick
             print(nick)
+
+            # correct any mishaps
+            if re.compile(ur'libr[ăa]ri[eai]', re.UNICODE).search(a.lower()):
+                c = self.connection
+                c.privmsg(self.channel, nick + ": " + u'BI-BLI-O-TE-CA!')
+
             self.db.log(nick, a)
             return
 
     def do_command(self, e, cmd, private=True):
         nick = e.source.nick
         c = self.connection
-    
+
         cmd = cmd.split()
         if len(cmd) == 0:
             c.notice(nick, "Not understood")
             return
         if cmd[0] == "roll":
             rolls = str(nick) + " rolls " 
-            
+
             if len(cmd) >= 2:
                 for roll in cmd[1:]:
                     v = roll.split('d')
@@ -113,8 +121,8 @@ class TestBot(irc.bot.SingleServerIRCBot):
         c.notice(nick, "!roll [[xd]y]... rools x dice with y faces, default 1d6")
         c.notice(nick, "!grab [user [index]] saves a line to quotes")
         c.notice(nick, "!quote [user] produces a random quote")
-    
-    
+
+
 def sighandler(signum, frame):
     if bot != None:
         bot.stop()
@@ -139,7 +147,7 @@ def main():
     channel = "#" + sys.argv[2]
     nickname = sys.argv[3]
 
-    
+
     db = QuoteDB(sys.argv[2] + '.db')
     bot = TestBot(db, channel, nickname, server, port)
     signal.signal(signal.SIGINT, sighandler)
