@@ -17,10 +17,27 @@ class TestBot(irc.bot.SingleServerIRCBot):
         irc.client.ServerConnection.buffer_class.errors = 'replace'
 
     def on_nicknameinuse(self, c, e):
+        print("Nickname in use")
         c.nick(c.get_nickname() + "_")
 
     def on_welcome(self, c, e):
+        print("Connected to server")
         c.join(self.channel)
+
+    def on_join(self, c, e):
+        print("join:", e.source.nick)
+        if e.source.nick != c.get_nickname():
+            self.db.log(e.source.nick, "has joined")
+
+    def on_part(self, c, e):
+        print("part:", e.source.nick)
+        if e.source.nick != c.get_nickname():
+            self.db.log(e.source.nick, "has left")
+
+    def on_quit(self, c, e):
+        print("quit:", e.source.nick)
+        if e.source.nick != c.get_nickname():
+            self.db.log(e.source.nick, "has left")
 
     def on_privmsg(self, c, e):
         a = e.arguments[0].strip()
