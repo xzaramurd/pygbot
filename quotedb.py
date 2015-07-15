@@ -36,3 +36,13 @@ class QuoteDB:
         else:
             c.execute("INSERT INTO quotes (log_id) SELECT id FROM log ORDER BY id DESC LIMIT 1 OFFSET ?", (index, ));
         self.conn.commit()
+
+    def get_logs(self, date = 'now'):
+        c = self.conn.cursor()
+        c.execute("SELECT id, timestamp, user, quote FROM log WHERE timestamp >= datetime(?) and timestamp < datetime(?, '+1 day') ORDER BY timestamp ASC", (date, date))
+        return c.fetchall()
+
+    def get_dates(self):
+        c = self.conn.cursor()
+        c.execute("SELECT date(timestamp) as dates FROM log GROUP BY dates")
+        return c.fetchall()
