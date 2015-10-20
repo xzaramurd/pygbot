@@ -6,15 +6,22 @@ import random
 import signal
 import re
 from quotedb import QuoteDB
+import sys
+import os
+import threading
+import datetime
 
 bot = None
 
 class TestBot(irc.bot.SingleServerIRCBot):
     def __init__(self, db, channel, nickname, server, port=6667):
-        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
+        irc.bot.SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname, 20)
         self.channel = channel
         self.db = db
         irc.client.ServerConnection.buffer_class.errors = 'replace'
+        self.pingtime = datetime.datetime.now()
+        t = threading.Timer(10, self.watchdog)
+        t.start()
 
     def on_nicknameinuse(self, c, e):
         print("Nickname in use")
@@ -27,17 +34,17 @@ class TestBot(irc.bot.SingleServerIRCBot):
     def on_join(self, c, e):
         print("join:", e.source.nick)
         if e.source.nick != c.get_nickname():
-            self.db.log(e.source.nick, "has joined")
+            self.db.log(e.source.nick, "has joined", 1)
 
     def on_part(self, c, e):
         print("part:", e.source.nick)
         if e.source.nick != c.get_nickname():
-            self.db.log(e.source.nick, "has left")
+            self.db.log(e.source.nick, "has left", 1)
 
     def on_quit(self, c, e):
         print("quit:", e.source.nick)
         if e.source.nick != c.get_nickname():
-            self.db.log(e.source.nick, "has left")
+            self.db.log(e.source.nick, "has quit", 1)
 
     def on_privmsg(self, c, e):
         a = e.arguments[0].strip()
@@ -47,19 +54,25 @@ class TestBot(irc.bot.SingleServerIRCBot):
         else:
             self.do_command(e, a)
 
+    def on_ping(self, c, e):
+        pass
+
+    def on_pong(self, c, e):
+        self.pingtime = datetime.datetime.now()
+
     def on_pubmsg(self, c, e):
         a = e.arguments[0].strip()
         if a[0] == '!':
-            print("public", a)
+            if a[1] == ' ':
+                return
             self.do_command(e, a[1:], private=False)
         else:
             nick = e.source.nick
-            print(nick)
 
             # correct any mishaps
-            if re.compile(ur'libr[ăa]ri[eai]', re.UNICODE).search(a.lower()):
+            if re.compile(r"libr[ăa]ri[eai]", re.UNICODE).search(a.lower()):
                 c = self.connection
-                c.privmsg(self.channel, nick + ": " + u'BI-BLI-O-TE-CA!')
+                c.privmsg(self.channel, nick + ": " + 'BI-BLI-O-TE-CA!')
 
             self.db.log(nick, a)
             return
@@ -117,6 +130,7 @@ class TestBot(irc.bot.SingleServerIRCBot):
                 self.db.save_quote(nick = cmd[1])
             else:
                 self.db.save_quote()
+            c.notice(nick, "Quote saved")
         elif cmd[0] == "quote":
             quote = None
             if len(cmd) >= 2:
@@ -138,6 +152,15 @@ class TestBot(irc.bot.SingleServerIRCBot):
         c.notice(nick, "!roll [[xd]y]... rools x dice with y faces, default 1d6")
         c.notice(nick, "!grab [user [index]] saves a line to quotes")
         c.notice(nick, "!quote [user] produces a random quote")
+
+    def watchdog(self):
+        if not self.connection.is_connected() or datetime.datetime.now() - self.pingtime > datetime.timedelta(seconds=60):
+            print("Connection failed, restarting")
+            python = sys.executable
+            os.execl(python, python, * sys.argv)
+        self.connection.ping(self.connection.get_nickname())
+        t = threading.Timer(10, self.watchdog)
+        t.start()
 
 
 def sighandler(signum, frame):
